@@ -10,7 +10,7 @@ const exportControl = new Export();
 
 describe(
     "Export dashboard",
-    { tags: ["checklist_integrated_tiger_export", "checklist_integrated_tiger_export_releng"] },
+    { tags: ["checklist_integrated_tiger_export", "checklist_integrated_tiger_export_releng_h"] },
     () => {
         beforeEach(() => {
             Navigation.visit("dashboard/dashboard-pivot-table-scenario");

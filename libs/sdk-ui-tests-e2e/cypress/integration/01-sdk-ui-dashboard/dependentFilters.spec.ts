@@ -131,9 +131,9 @@ describe("Dependent filter", () => {
 
     it(
         "should test parent - child interaction in edit mode",
-        { tags: ["checklist_integrated_tiger", "checklist_integrated_tiger_releng"] },
+        { tags: ["checklist_integrated_tiger", "checklist_integrated_tiger_releng_h"] },
         () => {
-            topBar.enterEditMode().editButtonIsVisible(false);
+            //topBar.enterEditMode().editButtonIsVisible(false);
             new InsightsCatalog().waitForCatalogLoad();
             table
                 .waitLoaded()

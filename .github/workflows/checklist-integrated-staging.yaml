@@ -31,7 +31,25 @@ on:
         required: false
         default: true
         type: boolean
+      DISPATCH_ID:
+        description: 'Unique dispatch id from upstream job'
+        required: false
+        type: string
+      CYPRESS_TEST_TAGS:
+        required: true
+        default: 'checklist_integrated_tiger,checklist_integrated_tiger_export'
+        type: string
+      FILTER:
+        required: false
+        type: string
 jobs:
+  dispatch_id:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.DISPATCH_ID != ''
+    runs-on: ubuntu-latest
+    steps:
+      - id: dispatch-id
+        name: ${{ github.event.inputs.DISPATCH_ID }}
+        run: echo "The dispatch ID is ${{ github.event.inputs.DISPATCH_ID }}"
   setup-stage:
     name: Setup env variables
     runs-on:
@@ -41,11 +59,25 @@ jobs:
       run-cypress-sdk: ${{ steps.test-suite-options.outputs.run-cypress-sdk }}
       run-export: ${{ steps.test-suite-options.outputs.run-export }}
       run-boiler-app: ${{ steps.test-suite-options.outputs.run-boiler-app }}
+      run-integrated-tag: ${{ steps.test-suite-options.outputs.run-integrated-tag }}
+      run-export-tag: ${{ steps.test-suite-options.outputs.run-export-tag }}
       send_message_to_slack_channel: ${{ steps.test-suite-options.outputs.send_message_to_slack_channel }}
     steps:
       - name: Set test suite options
         id: test-suite-options
         run: |
+          test_tags=$(echo "${{ inputs.CYPRESS_TEST_TAGS }}" | tr "," "\n")
+          for test_tag in $test_tags
+          do
+            if [ $test_tag == "checklist_integrated_tiger" ] || [ $test_tag == "checklist_integrated_tiger_releng_h" ]; then
+                echo "run-integrated-tag=$test_tag" >> $GITHUB_OUTPUT
+            fi
+
+            if [ $test_tag == "checklist_integrated_tiger_export" ] || [ $test_tag == "checklist_integrated_tiger_export_releng_h" ]; then
+                echo "run-export-tag=$test_tag" >> $GITHUB_OUTPUT
+            fi
+          done
+
           if [ -z "${{ inputs.run-cypress-sdk }}" ]; then
             echo 'run-cypress-sdk=true' >> $GITHUB_OUTPUT
           else
@@ -74,12 +106,13 @@ jobs:
       id-token: write
     uses: ./.github/workflows/checklist-cypress-ui-test.yaml
     needs: [ setup-stage ]
-    if: ${{ needs.setup-stage.outputs.run-cypress-sdk == 'true' }}
+    if: ${{ needs.setup-stage.outputs.run-cypress-sdk == 'true' && needs.setup-stage.outputs.run-integrated-tag != '' }}
     with:
-      CYPRESS_TEST_TAGS: 'checklist_integrated_tiger'
+      CYPRESS_TEST_TAGS: ${{ needs.setup-stage.outputs.run-integrated-tag }}
       GIT_REVISION: ${{ inputs.test-branch }}
       TEST_BACKEND: 'https://checklist.staging.stg11.panther.intgdc.com'
       TIGER_DATASOURCES_NAME: 'vertica_staging-goodsales'
+      FILTER: ${{ inputs.FILTER }}
   checklist-export:
     name: Cypress SDK Export Test
     permissions:
@@ -88,12 +121,13 @@ jobs:
       id-token: write
     uses: ./.github/workflows/checklist-cypress-ui-test.yaml
     needs: [ setup-stage, checklist-SDK ]
-    if: ${{ !cancelled() && needs.setup-stage.outputs.run-export == 'true' }}
+    if: ${{ !cancelled() && needs.setup-stage.outputs.run-export == 'true' && needs.setup-stage.outputs.run-export-tag != '' }}
     with:
-      CYPRESS_TEST_TAGS: 'checklist_integrated_tiger_export'
+      CYPRESS_TEST_TAGS: ${{ needs.setup-stage.outputs.run-export-tag }}
       GIT_REVISION: ${{ inputs.test-branch }}
       TEST_BACKEND: 'https://checklist.staging.stg11.panther.intgdc.com'
       TIGER_DATASOURCES_NAME: 'vertica_staging-goodsales'
+      FILTER: ${{ inputs.FILTER }}
   checklist-boiler-app:
     name: Boiler app test
     permissions:
