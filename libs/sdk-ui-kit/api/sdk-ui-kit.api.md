@@ -731,6 +731,8 @@ export interface IAccessibilityConfigBase {
     ariaLabel?: React.AriaAttributes["aria-label"];
     // (undocumented)
     ariaLabelledBy?: React.AriaAttributes["aria-labelledby"];
+    // (undocumented)
+    role?: React.AriaRole;
 }
 
 // @internal (undocumented)

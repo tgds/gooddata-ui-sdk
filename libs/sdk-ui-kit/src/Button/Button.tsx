@@ -36,13 +36,13 @@ export class Button extends React.Component<IButtonProps> {
             accessibilityConfig,
             buttonRef,
         } = this.props;
-        const { isExpanded, popupId, ariaLabel, ariaLabelledBy } = accessibilityConfig ?? {};
+        const { isExpanded, popupId, ariaLabel, ariaLabelledBy, role } = accessibilityConfig ?? {};
         const TagName = tagName as any;
         const effectiveValue = this.getEffectiveValue();
 
         const ariaDropdownProps = {
             ...(popupId ? { "aria-haspopup": !!popupId } : {}),
-            ...(popupId && isExpanded ? { "aria-controls": popupId, "aria-expanded": isExpanded } : {}),
+            ...(popupId ? { "aria-controls": popupId, "aria-expanded": isExpanded } : {}),
         };
 
         return (
@@ -63,7 +63,7 @@ export class Button extends React.Component<IButtonProps> {
                 aria-label={ariaLabel}
                 aria-labelledby={ariaLabelledBy}
                 {...ariaDropdownProps}
-                role="button"
+                role={role ?? "button"}
             >
                 {this.renderIcon(iconLeft)}
                 {effectiveValue ? <span className="gd-button-text">{effectiveValue}</span> : null}

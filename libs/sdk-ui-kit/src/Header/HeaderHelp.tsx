@@ -40,6 +40,7 @@ export const CoreHeaderHelp: React.FC<IHeaderHelpProps> = ({
     disableDropdown,
     onHelpClicked,
     helpRedirectUrl,
+    intl,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const helpMenuRef = useRef<Button>(null);
@@ -60,6 +61,7 @@ export const CoreHeaderHelp: React.FC<IHeaderHelpProps> = ({
         return (
             <a
                 key={item.key}
+                role="option"
                 href={item.href}
                 target={item.target}
                 rel={item.target === "_blank" ? "noreferrer noopener" : undefined}
@@ -155,6 +157,8 @@ export const CoreHeaderHelp: React.FC<IHeaderHelpProps> = ({
             accessibilityConfig={{
                 isExpanded: isOpen,
                 popupId: dropdownId,
+                role: "listbox",
+                ariaLabel: intl.formatMessage({ id: "gs.header.help.label" }),
             }}
             buttonRef={helpMenuButtonRef}
         >
