@@ -14,11 +14,11 @@ export TEST_WORKSPACE_ID=$(grep TEST_WORKSPACE_ID .env | cut -d '=' -f 2)
 mkdir -p /home/cypressuser/.npm-global/lib
 npx --verbose --yes @gooddata/$BOILER_APP_VERSION init $BOILER_APP_NAME --language $SDK_LANG
 
-tmp=$(mktemp)
-jq --arg host "${HOST}" --arg ws "${TEST_WORKSPACE_ID}" \
-'.gooddata.hostname = $host | .gooddata.workspaceId = $ws' \
-$BOILER_APP_NAME/package.json > $tmp
-mv $tmp $BOILER_APP_NAME/package.json
+# Replace the jq command with sed to update the package.json
+# First replace the hostname
+sed -i -E 's/"hostname": *"[^"]*"/"hostname": "'${HOST}'"/g' $BOILER_APP_NAME/package.json
+# Then replace the workspaceId
+sed -i -E 's/"workspaceId": *"[^"]*"/"workspaceId": "'${TEST_WORKSPACE_ID}'"/g' $BOILER_APP_NAME/package.json
 
 export TIGER_API_TOKEN=${TIGER_API_TOKEN:?}
 
